@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# LibreOffice / Excel temp files
+~$*.xlsx
+.~lock.*#
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter (如果以后用)
+.ipynb_checkpoints/
+
+# Output files (cleaned data)
+data/clean/*.xlsx
+
+# Optional: interim generated files
+data/interim/*
+!data/interim/README.md
