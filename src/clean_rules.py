@@ -1,6 +1,8 @@
 # src/clean_rules.py
 
 import pandas as pd
+import re
+
 from .config import (
     STANDARD_COLUMNS,
     DEFAULT_CURRENCY,
@@ -62,8 +64,64 @@ def parse_dates(df: pd.DataFrame) -> pd.DataFrame:
 
 def parse_amount_and_currency(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Convert amount to float and extract currency.
+    Parse amount column into numeric values and extract currency.
+    Expenses are represented as negative numbers.
     """
+    amounts = []
+    currencies = []
+
+    for raw_value in df["Amount"]:
+        if pd.isna(raw_value):
+            amounts.append(None)
+            currencies.append(DEFAULT_CURRENCY)
+            continue
+
+        text = str(raw_value).strip()
+
+        # ---- currency detection ----
+        currency = DEFAULT_CURRENCY
+        if "$" in text:
+            currency = "USD"
+        elif "usd" in text.lower():
+            currency = "USD"
+        elif "¥" in text:
+            currency = "JPY"
+
+        # ---- sign detection ----
+        negative = False
+        if text.startswith("(") and text.endswith(")"):
+            negative = True
+            text = text[1:-1]
+
+        if text.startswith("-"):
+            negative = True
+            text = text[1:]
+
+        # ---- extract numeric part ----
+        number_match = re.findall(r"[\d,.]+", text)
+        if not number_match:
+            amounts.append(None)
+            currencies.append(currency)
+            continue
+
+        number_text = number_match[0].replace(",", "")
+        try:
+            value = float(number_text)
+        except ValueError:
+            amounts.append(None)
+            currencies.append(currency)
+            continue
+
+        if negative:
+            value = -value
+
+        amounts.append(value)
+        currencies.append(currency)
+
+    df = df.copy()
+    df["amount"] = amounts
+    df["currency"] = currencies
+
     return df
 
 
