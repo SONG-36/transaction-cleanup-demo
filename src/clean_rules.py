@@ -57,8 +57,38 @@ def remove_noise_rows(df: pd.DataFrame) -> pd.DataFrame:
 
 def parse_dates(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Parse mixed date formats and convert to standard YYYY-MM-DD.
+    Parse mixed date formats.
+    Only forward-fill dates where the original Transaction Date was missing
+    (typically caused by merged cells).
     """
+    df = df.copy()
+
+    raw = df["Transaction Date"]
+    raw_clean = raw.astype(str).str.strip()
+    raw_clean = raw_clean.replace({"": None, "nan": None, "NaT": None})
+
+    # Track rows that were originally missing
+    originally_missing = raw_clean.isna()
+
+    # First parse attempt
+    parsed = pd.to_datetime(
+        raw_clean,
+        errors="coerce",
+        dayfirst=False
+    )
+
+    # Second pass for day-first formats
+    mask = parsed.isna() & raw_clean.notna()
+    if mask.any():
+        parsed2 = pd.to_datetime(
+            raw_clean[mask], errors="coerce", dayfirst=True
+        )
+        parsed.loc[mask] = parsed2
+
+    # ✅ Only forward-fill rows that were originally empty
+    parsed.loc[originally_missing] = parsed.ffill().loc[originally_missing]
+
+    df["date"] = parsed.dt.strftime(DATE_OUTPUT_FORMAT)
     return df
 
 
