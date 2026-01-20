@@ -85,6 +85,13 @@ Each rule is implemented as an independent function for clarity and reuse.
 
 ------
 
+## Design Notes
+
+- Dates are **only forward-filled when missing due to merged cells**.
+   Rows without a reliable date signal are intentionally left blank to avoid fabricating data.
+- Original raw values (e.g. text amounts) are preserved alongside parsed numeric fields for traceability.
+- The pipeline is designed to be **extensible**, allowing new rules or file formats to be added with minimal changes.
+
 ## Project Structure
 
 ```
