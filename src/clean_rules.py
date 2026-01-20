@@ -14,6 +14,9 @@ def normalize_headers(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize column names and drop completely empty columns.
     """
+    df = df.copy()
+    df.columns = [str(c).strip() for c in df.columns]
+    df = df.dropna(axis=1, how="all")
     return df
 
 
@@ -159,4 +162,33 @@ def finalize_schema(df: pd.DataFrame, source_file: str) -> pd.DataFrame:
     """
     Rename columns, add source_file, and enforce final schema.
     """
-    return df
+    df = df.copy()
+
+    rename_map = {
+        "Transaction Date": "transaction_date_raw",
+        "Description": "description",
+        "Amount": "amount_raw",
+        "Balance": "balance",
+        "Notes": "notes",
+    }
+
+    df = df.rename(columns=rename_map)
+
+    df["source_file"] = source_file
+
+    final_columns = [
+        "date",
+        "transaction_date_raw",
+        "description",
+        "amount",
+        "currency",
+        "amount_raw",
+        "balance",
+        "notes",
+        "source_file",
+    ]
+
+    # Only keep columns that exist
+    final_columns = [c for c in final_columns if c in df.columns]
+
+    return df[final_columns]
