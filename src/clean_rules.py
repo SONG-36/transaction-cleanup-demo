@@ -24,9 +24,33 @@ def expand_merged_cells(df: pd.DataFrame) -> pd.DataFrame:
 
 def remove_noise_rows(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Remove empty rows, repeated headers, and summary rows.
+    Remove empty rows, repeated header rows, and summary rows
+    such as Subtotal / Total / Opening Balance.
     """
-    return df
+    # 1. Drop completely empty rows
+    df = df.dropna(how="all")
+
+    # 2. Remove repeated header rows
+    # A repeated header row usually contains the column names themselves
+    header_values = [str(col).strip().lower() for col in df.columns]
+
+    def is_repeated_header(row) -> bool:
+        row_values = [str(v).strip().lower() for v in row.values]
+        return row_values == header_values
+
+    df = df[~df.apply(is_repeated_header, axis=1)]
+
+    # 3. Remove summary rows (Subtotal / Total / Opening Balance)
+    def contains_summary_keyword(row) -> bool:
+        row_text = " ".join(
+            str(v).lower() for v in row.values if pd.notna(v)
+        )
+        return any(keyword in row_text for keyword in SUMMARY_KEYWORDS)
+
+    df = df[~df.apply(contains_summary_keyword, axis=1)]
+
+    # Reset index after row removal
+    return df.reset_index(drop=True)
 
 
 def parse_dates(df: pd.DataFrame) -> pd.DataFrame:

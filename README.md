@@ -107,7 +107,7 @@ transaction-cleanup-demo/
 ## How to Run
 
 ```bash
-python src/run_cleaning.py
+python -m src.run_cleaning
 ```
 
 The script processes all files in `data/raw/` and writes cleaned files to `data/clean/`.
