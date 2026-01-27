@@ -37,7 +37,7 @@ Real-world transaction spreadsheets often look like this:
 **Screenshot:**
 
 ```
-screenshots/demo1_before_raw.png
+screenshots/before_raw.png
 ```
 
 (Shows mixed date formats, text-based amounts, merged cells, and noise rows)
@@ -62,7 +62,7 @@ Each raw file is converted into a **clean, standardized transaction table**.
 **Screenshot:**
 
 ```
-screenshots/demo1_after_clean.png
+screenshots/after_clean.png
 ```
 
 **Example rows:**
